@@ -129,6 +129,13 @@ begin
 }
             1: if blank=0 then begin
                   repeat
+                     if line[crsr]=',' then begin
+                       writeln(outfile,name);
+                       name:='';
+                       repeat
+                         inc(crsr);
+                       until (line[crsr] > ' ');
+                     end;
                      name:=name+line[crsr];
                      inc(crsr);
                   until crsr>linelen;
@@ -164,12 +171,14 @@ begin
                   end; { if }
                end;  { if pass=4 }
             8: begin { exit code }
-                  inc(pass);
+                  name:='';
+                  pass:=1;
+                  data:=0;
+                  bits:=8;
                   codes[pointer].exit:=0;
                end
             else begin
                {blank:=0;}
-               name:='';
                pass:=1;
                data:=0;
                bits:=8;
