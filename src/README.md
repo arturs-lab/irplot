@@ -1,0 +1,1 @@
+Adding everything I found in old directory as I'm not sure which parts wewre needed. Presumably hexed was used to poke around captured data. No idea what aa.obj was. May be needed for the c code in irplot dir, actually.
