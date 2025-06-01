@@ -7,7 +7,7 @@ Program ir_decode;
 {$ENDIF}
 
 const
-   weight : array [1..8] of byte = (128,64,32,16,8,4,2,1);  
+   weight : array [1..8] of byte = (128,64,32,16,8,4,2,1);
    {weight : array [1..8] of byte = (1,2,4,8,16,32,64,128); }
 
 type
@@ -20,15 +20,17 @@ type
    end;
 
 var
-   codes    : array [1..150] of pulse;
+   codes    : array [1..222] of pulse;
    temp     : pulse;
    pointer,
    pointer1,
    pointer2 : integer;
    infile,
-   outfile  : text;
+   outfile,
+   errfile  : text;
    infname,
-   outfname : string;
+   outfname,
+   errfname : string;
    line     : string;
    linelen  : integer;
    crsr     : integer;
@@ -40,10 +42,13 @@ var
 procedure openfile;
 
 begin
-   assign(infile,infname+'.txt');
+   assign(infile,infname+'.doc');
    reset(infile);
    assign(outfile,infname+'.out');
    rewrite(outfile);
+{   assign(errfile,infname+'.err');
+   rewrite(errfile);
+}
 end;
 
 procedure closefile;
@@ -51,6 +56,8 @@ procedure closefile;
 begin
    close(infile);
    close(outfile);
+{   close(errfile);
+}
 end;
 
 function tohexbyte(a:byte):string;
@@ -94,6 +101,7 @@ procedure readcode;
 
 var name  : string;
     num   : real;
+    blank : integer;
     pass  : integer;
     data  : byte;
     bits  : integer;
@@ -103,15 +111,23 @@ begin
    data:=0;
    bits:=8;
    pointer:=0;
+   name:='';
    while (not EOF(infile)) and (pass<99) do begin
       readln(infile,line);
       linelen:=length(line);
+      blank:=0;
       crsr:=1;
-      name:='';
-      while (line[crsr]<'!') and (crsr<linelen) do inc(crsr);
-      if crsr<linelen then begin
+      while (line[crsr]<'!') and (crsr<linelen) do begin
+         inc(crsr);
+         inc(blank);
+      end;
+{      writeln(errfile,'linelen=',linelen,' crsr=',crsr,' blank=',blank,' pass=',pass,' ',line);
+}
+      if crsr<=linelen then begin
          case pass of
-            1: if upcase(line[crsr]) in ['A'..'Z'] then begin
+{            1: if upcase(line[crsr]) in ['A'..'Z'] then begin
+}
+            1: if blank=0 then begin
                   repeat
                      name:=name+line[crsr];
                      inc(crsr);
@@ -152,6 +168,8 @@ begin
                   codes[pointer].exit:=0;
                end
             else begin
+               {blank:=0;}
+               name:='';
                pass:=1;
                data:=0;
                bits:=8;
@@ -160,7 +178,7 @@ begin
       end; { if crsr<linelen }
    end; { while (not EOF(infile)) and (pass<99) }
 end; { procedure readcode }
-
+{
 procedure sort;
 
 begin
@@ -171,10 +189,10 @@ begin
             codes[pointer1]:=codes[pointer2];
             codes[pointer2]:=temp;
          end;
-end; { procedure sort }   
-      
+end; { procedure sort }
+
 begin { main program }
-   write('Enter file name ( extension must be .TXT ): ');
+   write('Enter file name ( extension must be .DOC ): ');
    readln(infname);
    while length(infname)>0 do begin
       openfile;
@@ -186,6 +204,7 @@ begin { main program }
                write(tohexbyte(data[i]),' ');
             writeln(exit:10:6);
          end;
+      {
       write('Sort ? (Y/N) ');
       readln(sortq);
       if upcase(sortq[1])='Y' then begin
@@ -198,6 +217,7 @@ begin { main program }
                writeln(exit:10:6);
             end;
          end;
+}
       for pointer1:=1 to pointer do
          with codes[pointer1] do begin
             write(outfile,name:20,' ',sync_hi:10:6,' ',sync_lo:10:6,' ');
@@ -206,7 +226,7 @@ begin { main program }
             writeln(outfile,exit:10:6);
          end;
       closefile;
-      write('Enter file name ( extension must be .TXT ): ');
+      write('Enter file name ( extension must be .DOC ): ');
       readln(infname);
    end;
 end. { main program }
